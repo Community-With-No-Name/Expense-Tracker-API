@@ -20,27 +20,26 @@ class AuthController {
     static Login(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, password } = req.body;
-            console.log(req.body);
+            // console.log(req.body);
             yield Users_1.default.findOne({ email }).then((user) => {
                 if (user) {
                     if (bcryptjs_1.default.compareSync(password, user.password)) {
                         const payload = {
                             userId: user._id,
                             email: user.email,
-                            faculty: user.faculty,
                             fullName: user.fullName,
-                            department: user.department,
+                            image: user.image
                         };
                         let token = jsonwebtoken_1.default.sign(payload, key);
                         res.json(token);
                     }
                     else {
-                        res.json({ message: "Passwords do not match" });
+                        res.json({ error: "Passwords do not match" });
                     }
                 }
                 else {
                     res.json({
-                        message: "User does not exist",
+                        error: "User does not exist",
                     });
                 }
             });
@@ -48,20 +47,18 @@ class AuthController {
     }
     static SignUp(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { fullName, password, email, faculty, department } = req.body;
+            const { fullName, password, email, image } = req.body;
             const NewUser = {
                 fullName,
                 password,
                 email,
-                faculty,
-                department,
+                image
             };
             yield Users_1.default.findOne({ email }).then((user) => {
                 if (!user) {
                     bcryptjs_1.default.hash(password, 10, (err, hash) => {
                         NewUser.password = hash;
                         const hashedUser = new Users_1.default(NewUser);
-                        // Customer.create(customerData).then(() => {
                         hashedUser.save().then(() => {
                             res.json({ message: `${fullName}'s Account Created Successfully` });
                         });
@@ -69,7 +66,7 @@ class AuthController {
                 }
                 else {
                     res.json({
-                        message: "An account already exists with that email address"
+                        error: "An account already exists with that email address"
                     });
                 }
             });
